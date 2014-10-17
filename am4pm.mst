@@ -1,0 +1,54 @@
+; Messages for AM4PM
+; 930207 TO
+AMP
+AMP0000I: DOS error:
+AMP0001E: Error allocating memory
+AMP0002E: Error %1 opening file '%2'
+AMP0003E: Unkown DTMF command '%1'
+AMP0004E: Unkown REXX sub command '%1'ÿ
+AMP0005E: Error writing to COMx
+AMP0006E: Error %1 calling REXX function '%2'
+AMP0007E: Unkown AM command code %1 '%2'
+AMP0008E: Error %1 registering REXX function '%2'
+AMP0009E: Error %1 starting program '%2'
+AMP0010E: Error %1 creating queue
+AMP0011E: Error %1 reading queue
+AMP0012E: Unkown event code %1 reading queue
+AMP0013E: Bad number of arguments in '%1'
+AMP0014E: Error opening '%1'
+AMP0015E: Error %1 registering REXX exit function
+AMP0016E: Error in DosPortAccess
+AMP0017E: Error in DosQueryFileInfo
+AMP0018E: Error in DosSetFileSize
+AMP0019E: No file open for recording
+AMP0020E: Timeout waiting for '%1' from AT command %2
+AMP0021I: AMLog: '%1'
+AMP0022E: Unknown file mode '%1'
+AMP0023E: Internal: Timeout waiting for reading thread to halt
+AMP0024E:
+AMP0025E:
+AMP0026E:
+AMP0027E:
+AMP0028E:
+AMP0029W:
+AMP0030W:
+AMP0031W:
+AMP0032W:
+AMP0033E:
+AMP0034E:
+AMP0035E:
+AMP0036W:
+AMP0037W:
+AMP0038W:
+AMP0039W:
+AMP0040W:
+AMP0041W:
+AMP0042W:
+AMP0043W:
+AMP0044W:
+AMP0045W:
+AMP0046W:
+AMP0047E:
+AMP0048E:
+AMP0049W:
+AMP0050E: Error %1 calling IOCtl '%2'

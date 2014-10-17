@@ -1,0 +1,21 @@
+/*********************************************************************/
+/* EXIT.AMC - AM4PM is terminating                                   */
+/*                                                                   */
+/* This program is called by AM4PM.EXE.                              */
+/*                                                                   */
+/* Input:  arg(1) 1 if COM open and 0 if not                         */
+/*                                                                   */
+/* Output: 0  Normal.                                                */
+/*                                                                   */
+/*********************************************************************/
+
+CALL AMDPrint 'EXIT.AMC('arg(1)') started'
+CALL AMSetStateText 'Terminating'
+
+if arg(1) then
+   CALL AMSendAT('ATZ{OK}')
+
+CALL AMSetStateText 'Terminated'
+
+Exit 0
+

@@ -1,0 +1,46 @@
+/*********************************************************************/
+/* INIT.AMC - Initialize the modem                                   */
+/*                                                                   */
+/* This program is called by AM4PM.EXE.                              */
+/*                                                                   */
+/* Input:  none                                                      */
+/*                                                                   */
+/* Output: 0  Normal.                                                */
+/*         1  Initialisation failed. Terminate AM4PM                 */
+/*                                                                   */
+/*********************************************************************/
+signal on syntax
+/* signal on failure */
+
+CALL RxFuncAdd 'SysLoadFuncs', 'RexxUtil', 'SysLoadFuncs'
+CALL SysLoadFuncs
+
+CALL AMDPrint 'INIT.AMC() started'
+
+CALL AMSendAT 'ATZ{OK}', 10000, 6
+CALL AMSendAT 'ATE0{OK}'
+CALL AMSendAT 'ATS39.6=1{OK}'
+/* AMSendW('ATS39.7=1') */ /* For ROM >= 6.10 */
+CALL AMSendAT 'AT+FCLASS=8{OK}'
+CALL AMSendAT 'AT+VIT=200{OK}'
+
+Exit 0
+
+syntax:
+   select
+   when rc=1 then
+      CALL AMLog 'Invalid parameters: INIT.AMC line 'sigl' rc='rc
+   when rc=2 then
+      do
+         CALL AMLog 'Function failure: INIT.AMC line 'sigl' rc='rc
+         CALL SysSleep(600)
+      end
+   otherwise
+      CALL AMLog 'Syntax err: INIT.AMC line 'sigl' rc='rc
+   end
+   return 1
+
+failure:
+   CALL AMLog 'Failure: INIT.AMC line 'sigl
+   return 1
+

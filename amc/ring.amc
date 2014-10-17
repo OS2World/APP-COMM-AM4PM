@@ -1,0 +1,172 @@
+/*********************************************************************/
+/* RING.AMC - Make something when it rings                           */
+/*                                                                   */
+/* This program is called by AM4PM.EXE.                              */
+/*                                                                   */
+/* Input:  arg(1) The string from DCE resulting in this call         */
+/* Input:  arg(2) Number of rings so far                             */
+/*                                                                   */
+/* Output: 0  Normal. Only AT+VLS=0 is done before waiting           */
+/*         1  Full init. Reinit COM-port and everything.             */
+/*         2  Terminate AM4PM.                                       */
+/*                                                                   */
+/*********************************************************************/
+signal on syntax
+/* signal on failure */
+
+SpecialDLE='*#bcde59'
+
+CALL AMDPrint 'RING.AMC('arg(1)', 'arg(2)') started'
+CALL AMSetLastEventText arg(1)
+
+/* Just answer */
+CALL AMSendAT('AT+VLS=2{VCON}')
+
+CALL AMSetStateText 'Answering call'
+
+strGreetFile = 'GREETING.ZVD'
+h = time(Hour)
+
+if h >= 22 | h <= 1 then
+do
+   strGreetFile = 'GREETEV.ZVD'
+end
+
+if h > 1 & h <= 5 then
+do
+   strGreetFile = 'GREETNI.ZVD'
+end
+
+if h > 5 & h <= 7 then
+do
+   strGreetFile = 'GREETMO.ZVD'
+end
+
+CALL AMSetStateText 'Playing greeting message'
+
+DLECode=AMPlayFile(strGreetFile, SpecialDLE)
+/* Wait a litle */
+if (DLECode=' ') then 
+   DLECode=AMWaitDLECode(2500, SpecialDLE)
+
+sigdlecode:
+
+select
+when DLECode='*' then /* User action */
+   return ReadCmd(arg(2))
+when DLECode='c' | DLECode='#' then
+   return StartFax()
+when DLECode='5' | DLECode='e' then
+   return StartModem()
+when DLECode = 'd' | DLECode='b' | DLECode='s' then
+   do
+      CALL AMSetLastEventText 'No recording'
+      return 0
+   end
+when DLECode='!' then /* Something went wrong */
+   return 0;
+when DLECode='9' then /* Extended message */
+   do
+      DLECode=AMPlayFile('INFO.ZVD', SpecialDLE)
+      if (DLECode=' ') then 
+         DLECode=AMWaitDLECode(2000, SpecialDLE)
+      signal sigdlecode
+   end
+otherwise
+   nop
+end
+
+/* Play the 'beep' */
+CALL AMSendAT('AT+VTS=[800,0,12]{OK}')
+
+CALL AMSetStateText 'Recording message'
+
+CrntMFile=AMOpenRecFile()
+
+CALL AMStartRec(3) /* 1 = CELP, 2 = ADPCM2, 3 = ADPCM3 */
+
+/* In some countries a dial tone is generated immediately when the calling party hangs up.
+   It might then be a good idea to add DLE code 'd' here. */
+DLECode=AMWaitDLECode(120000, SpecialDLE'qs')
+
+CALL AMEndRec
+CALL AMCloseRecFile
+
+/* DLECode = 'q' */
+
+select
+when DLECode='q' then /* Add DLE code 'd' if dial tone is generated when the caller hangs up */
+   do
+      CALL AMSetLastEventText 'Message stored'
+      Descr='Put CID text here'
+      DescrEA='FDFF'X || d2c(length(Descr)) || '00'X || Descr
+      CALL SysPutEA CrntMfile, '.SUBJECT', DescrEA
+      return 0 
+   end
+otherwise
+   'del' CrntMFile
+   signal sigdlecode
+end
+
+Exit 0
+
+StartFax:
+   CALL AMDPrint 'Fax detected'
+   CALL AMSetStateText 'Waiting for fax'
+
+   /* Fax2You stuff */
+   HotComm=AMGetHotComm()
+   SAY 'Starting Fax2You -l %'HotComm '-faxworks -nowait'
+   ResCode=AMStartProg('Fax2You -l %'HotComm '-faxworks -nowait')
+   SAY 'Fax2You returned' ResCode
+   CALL AMReleaseHotComm
+   return 1
+
+   /* The old stuff */
+   CALL AMSendAT 'AT&D0{OK}'  /* Let the connection be open even if the port is closed */
+   CALL AMSendAT 'AT+FCLASS=2{OK}'  /* This shouldn't be necessary */
+   AMCloseComm()
+   AMStartProg('FxRcv -cc')
+   CALL AMSetLastEventText 'FxRcv -cc started'
+   CALL SysSleep 15 /* Give FaxWorks a chance to open the port */
+   /* AM4PM will try to open the port again */
+return 1
+
+
+StartModem:
+   CALL AMDPrint 'Looking for modem'
+   CALL AMSetStateText 'Looking for modem'
+   CALL AMSendAT 'AT+FCLASS=0{OK}'
+   CALL AMSendAT 'ATS35.5=0{OK}'
+   CALL AMSendAT 'AT*Q0{OK}'    /* No response to bad signal quality */
+   ResCode=AMSendW('ATA')
+   select
+   when ResCode='NO CARRIER' then
+      return 1
+   otherwise
+      SAY 'Modem detected:' ResCode  
+      CALL AMSetLastEventText 'Modem detected'
+
+      PARSE VAR ResCode conct localspeed extspeed
+      PARSE VAR extspeed thespeed '/' thetype
+      thespeed = strip(thespeed)
+      SAY 'Starting BBS CON='conct 'Local speed='localspeed 'ext speed='extspeed 'the speed='thespeed
+      CALL AMSetLastEventText 'BBS started'
+      HotComm=AMGetHotComm()
+      ResCode=AMStartProg('MAXP -p'HotComm '-b'thespeed' e:\p\max\max.prm')
+      CALL AMDPrint 'MAXP returned' ResCode
+      SAY 'MAXP returned' ResCode
+      CALL AMReleaseHotComm
+      return 1
+   end
+return 1
+
+
+syntax:
+   CALL AMLog 'Syntax err: RING.AMC line 'sigl 
+   return 1
+
+failure:
+   CALL AMLog 'Failure: RING.AMC line 'sigl
+   return 1
+

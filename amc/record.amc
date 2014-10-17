@@ -1,0 +1,42 @@
+/*********************************************************************/
+/* RECORD.AMC - Do a recording of a message                          */
+/*                                                                   *//* This program is called by AM4PM.EXE.                              */
+/*                                                                   *//* Input:  arg(1) Name of the file to record                         */
+/*                                                                   *//* Output: 0  Normal. Only AT+VLS=0 is done before waiting           */
+/*         1  Full init. Reinit COM-port and everything.             */
+/*         2  Terminate AM4PM.                                       */
+/*                                                                   *//*********************************************************************/
+CALL AMDPrint 'RECORD.AMC('arg(1)') started'
+CALL AMSetLastEventText 'Record'
+
+CALL AMSendAT('AT+VLS=8{VCON}')     /* 2 = telco line, 8 = external mic */
+
+CALL AMSetStateText 'Recording message' arg(1)
+
+CrntMFile=AMOpenRecFile()
+
+CALL AMStartRec(3) /* 1 = CELP, 2 = ADPCM2, 3 = ADPCM3 */
+
+DLECode=AMWaitDLECode()
+CALL AMEndRec
+
+select
+when DLECode='!' | DLECode='s' then
+   CALL AMCloseRecFile
+when DLECode='.' then
+   do
+      CALL AMCloseRecFile
+      'copy' CrntMFile arg(1)
+   end
+otherwise
+   do
+      CALL AMTrimFileEnd(1100)    /* Remove the short DTMF tone */
+      CALL AMCloseRecFile
+      'copy' CrntMFile arg(1)
+   end
+end
+
+'del' CrntMFile
+Exit 0
+
+

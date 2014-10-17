@@ -1,0 +1,99 @@
+/*********************************************************************/
+/* USER.AMC - Handle user events while idle                          */
+/*                                                                   */
+/* This program is called by AM4PM.EXE.                              */
+/*                                                                   */
+/* Input:  arg(1) Name of the external event                         */
+/*                                                                   */
+/* Output: 0  Normal. Only AT+VLS=0 is done before waiting           */
+/*         1  Full init. Reinit COM-port and everything.             */
+/*         2  Terminate AM4PM.                                       */
+/*                                                                   */
+/*********************************************************************/
+
+CALL AMDPrint 'USER.AMC('arg(1)') started'
+CALL AMSetLastEventText 'USER' arg(1)
+
+select
+when arg(1)='hookoff' then
+   do
+      CALL AMOutp 770, 5
+      /* Just answer */
+      CALL AMSendAT('AT+VLS=2{VCON}')
+      CALL AMSetStateText 'Local talk'
+      CALL AMSetLastEventText 'Hook off'
+      CALL AMSendAT('AT+VTS=[1800,0,2]{OK}')
+      res = CheckDLECode(AMWaitDLECode(3000))
+      CALL AMOutp 770, 7
+      return res
+   end
+otherwise
+   do
+      CALL AMDPrint 'Unknown user action'
+   end
+end
+
+
+Exit 0
+
+
+CheckDLECode: arg DLEEvent
+
+   select
+   when DLEEvent='*' then
+      return ReadCmd()
+   when DLEEvent='hookon' then
+      return 0
+   otherwise
+      return Local2Ext()
+   end
+return 0
+
+
+Local2ExtTest:
+   CALL AMSendAT('AT+VLS=0{OK}')
+   CALL AMOutp 770, 4 
+   CALL AMSetLastEventText 'Call out'
+   CALL AMSetStateText 'Call out'
+   /* Wait for hook on */
+   do while 1
+      DLEEvent = AMWaitDLECode(60000)
+      if DLEEvent='hookon' then
+      do
+         CALL AMDPrint 'The hook is on again'
+         return 0
+      end
+   end
+return 0
+
+
+Local2Ext:
+   CALL AMSendAT('AT+VLS=0{OK}')
+   CALL AMOutp 770, 4 
+   CALL AMSetLastEventText 'Call out'
+   CALL AMSetStateText 'Call out'
+   /* Wait for hook on */
+   do while 0
+      CALL SysSleep(1)
+      port = AMInp(770)
+      crntoh = (port % 16) // 2
+      crntlc1 = (port % 32) // 2
+      crntlc2 = (port % 64) // 2
+      if (crntlc1 | crntlc2) then
+         leave
+   end
+   do while 1
+      CALL SysSleep(1)
+      port = AMInp(770)
+      crntlc1 = (port % 32) // 2
+      crntlc2 = (port % 64) // 2
+      if (\ (crntlc1 | crntlc2)) then
+      do
+         CALL AMDPrint 'The hook is on again'
+         return 0
+      end
+   end
+return 0
+
+
+

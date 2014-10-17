@@ -1,0 +1,14 @@
+NAME    AM4PM WINDOWAPI
+DESCRIPTION 'Anwering machine for PM and ZyXEL'
+
+SEGMENTS IO_TEXT IOPL
+
+EXPORTS        ClientWndProc
+               AboutDlgProc
+               SettingsDlgProc
+               RPORT 1
+               WPORT 2
+               WPORT16 3
+               RPORT16 4
+
+

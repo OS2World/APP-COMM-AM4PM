@@ -1,0 +1,53 @@
+// Thomas Answering machine for PM
+
+// File:          AM4PM.res
+// Description:   The resources
+
+// History
+// 930214 TO      Now it exists...
+
+
+#include <os2.h>
+#include "am4pmdlg.h"
+
+POINTER IDD_MAIN Am4Pm.ico
+POINTER IDI_MSG  MSG.ico
+
+
+MENU IDD_MAIN
+{
+   SUBMENU  "~File",            IDM_FILE
+   {
+      MENUITEM "~Record...",            IDM_RECORD
+      MENUITEM "~Play...",              IDM_PLAYFILE
+      MENUITEM "~Settings...",          IDM_SETTINGS
+      MENUITEM SEPARATOR
+      MENUITEM "Product ~information", IDM_ABOUT
+   }
+}
+
+MENU IDM_PU
+{
+   MENUITEM "~Play",                    IDM_PLAY
+   MENUITEM "~Delete",             IDM_DELETE
+   SUBMENU "~File",                     IDM_FILE
+   {
+      MENUITEM "~Play...",              IDM_PLAYFILE
+      MENUITEM "~Record...",    IDM_RECORD
+   }
+   MENUITEM SEPARATOR
+   MENUITEM "~Abort",               IDM_ABORT
+   MENUITEM "S~top",                IDM_STOP
+   MENUITEM "~Release",                IDM_RELEASE
+   MENUITEM "~Settings...",            IDM_SETTINGS
+   MENUITEM SEPARATOR
+   MENUITEM "~Product information",     IDM_ABOUT
+}
+
+ACCELTABLE IDD_MAIN
+{
+   "R", IDM_RECORD, CONTROL
+   127, IDM_DELETE, CHAR
+}
+
+rcinclude Am4Pm.dlg

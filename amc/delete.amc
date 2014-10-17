@@ -1,0 +1,22 @@
+/*********************************************************************/
+/* DELETE.AMC - Delete a message                                     */
+/*                                                                   */
+/* This program is called by AM4PM.EXE when the user wants to delete */
+/* a message selected from the listbox.                              */
+/*                                                                   */
+/* Input:  The name of the file to delete                            */
+/*                                                                   */
+/* Output: 0  Normal                                                 */
+/*         1  Reread directory                                       */
+/*                                                                   */
+/*********************************************************************/
+CALL AMDPrint 'DELETE.AMC('arg(1)') started'
+CALL AMSetLastEventText 'Delete'
+/* CALL AMSetStateText 'Deleting message' */
+
+'del' arg(1)
+if \ (rc = 0) then
+   return 1
+
+Exit 0
+

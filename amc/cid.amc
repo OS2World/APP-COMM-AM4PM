@@ -1,0 +1,16 @@
+/*********************************************************************/
+/* CID.AMC - A caller ID message was detected                        */
+/*                                                                   */
+/* This program is called by AM4PM.EXE when a string starting        */
+/* starting with 'TIME' is recived from the modem                    */
+/*                                                                   */
+/* Input:  The string starting with 'TIME'                           */
+/*                                                                   */
+/* Output: 0  Normal                                                 */
+/*                                                                   */
+/*********************************************************************/
+CALL AMDPrint 'CID.AMC('arg(1)') started'
+CALL AMSetStateText 'Processing CID'
+CALL AMSetLastEventText 'CID:' arg(1)
+Exit 0
+

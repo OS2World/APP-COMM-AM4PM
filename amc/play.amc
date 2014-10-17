@@ -1,0 +1,22 @@
+/*********************************************************************/
+/* PLAY.AMC - Play a message to the speaker                          */
+/*                                                                   */
+/* This program is called by AM4PM.EXE when the user wants to play   */
+/* a message selected from the listbox.                              */
+/*                                                                   */
+/* Input:  The name of the file to play                              */
+/*                                                                   */
+/* Output: 0  Normal. Only AT+VLS=0 is done before waiting           */
+/*         1  Full init. Reinit COM-port and everything.             */
+/*         2  Terminate AM4PM.                                       */
+/*                                                                   */
+/*********************************************************************/
+CALL AMDPrint 'PLAY.AMC('arg(1)') started'
+CALL AMSetLastEventText 'Play'
+
+CALL AMSetStateText 'Playing message'
+CALL AMSendAT('AT+VLS=16{VCON}')    /* 2 Telco line, 16 Internal speaker */
+
+DLECode=AMPlayFile(arg(1))
+Exit 0
+
